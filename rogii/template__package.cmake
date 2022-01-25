@@ -7,6 +7,7 @@ find_package(
     PATHS
         "${CMAKE_CURRENT_LIST_DIR}"
     NO_DEFAULT_PATH
+    NO_CMAKE_FIND_ROOT_PATH
 )
 
 unset(
