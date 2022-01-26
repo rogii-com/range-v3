@@ -2,3 +2,6 @@
 	path = doc/gh-pages
 	url = https://github.com/ericniebler/range-v3.git
 	branch = gh-pages
+[submodule "rogii/npm"]
+	path = rogii/npm
+	url = https://github.com/rogii-com/cnpm.git
