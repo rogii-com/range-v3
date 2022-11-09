@@ -38,7 +38,7 @@ private:
 public:
     using view_non_const_only::view_adaptor::view_adaptor;
 
-    CPP_member
+    CPP_auto_member
     auto CPP_fun(size)() (
         requires sized_range<Rng>)
     {
@@ -75,6 +75,11 @@ void test_range(Rng&& src)
         auto list = src_ | views::drop_last(4);
         CHECK(list.empty());
     }
+    {
+        auto src_ = src;
+        auto list = src_ | views::drop_last(5);
+        CHECK(list.empty());
+    }
 }
 
 template<class Rng>
@@ -83,6 +88,7 @@ void test_size(Rng&& src)
     CHECK( (src | views::drop_last(0)).size() == std::size_t(4) );
     CHECK( (src | views::drop_last(2)).size() == std::size_t(2) );
     CHECK( (src | views::drop_last(4)).size() == std::size_t(0) );
+    CHECK( (src | views::drop_last(5)).size() == std::size_t(0) );
 }
 
 template<class Rng>

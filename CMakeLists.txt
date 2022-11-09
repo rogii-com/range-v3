@@ -33,35 +33,38 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Export compilation data-base
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+include(ranges_options)
+include(ranges_env)
+include(ranges_flags)
+
 add_library(range-v3-meta INTERFACE)
 add_library(range-v3::meta ALIAS range-v3-meta)
 target_include_directories(range-v3-meta INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>)
 target_include_directories(range-v3-meta SYSTEM INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>)
-target_compile_options(range-v3-meta INTERFACE $<$<CXX_COMPILER_ID:MSVC>:/permissive->)
+target_compile_options(range-v3-meta INTERFACE $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/permissive->
+                                               $<$<COMPILE_LANG_AND_ID:CUDA,MSVC>:-Xcompiler=/permissive->)
 
 add_library(range-v3-concepts INTERFACE)
 add_library(range-v3::concepts ALIAS range-v3-concepts)
 target_include_directories(range-v3-concepts INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>)
 target_include_directories(range-v3-concepts SYSTEM INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>)
-target_compile_options(range-v3-concepts INTERFACE $<$<CXX_COMPILER_ID:MSVC>:/permissive->)
+target_compile_options(range-v3-concepts INTERFACE $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/permissive->
+                                                   $<$<COMPILE_LANG_AND_ID:CUDA,MSVC>:-Xcompiler=/permissive->)
 target_link_libraries(range-v3-concepts INTERFACE range-v3::meta)
 
 add_library(range-v3 INTERFACE)
 add_library(range-v3::range-v3 ALIAS range-v3)
 target_include_directories(range-v3 INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>)
 target_include_directories(range-v3 SYSTEM INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>)
-target_compile_options(range-v3 INTERFACE $<$<CXX_COMPILER_ID:MSVC>:/permissive->)
+target_compile_options(range-v3 INTERFACE $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/permissive->
+                                          $<$<COMPILE_LANG_AND_ID:CUDA,MSVC>:-Xcompiler=/permissive->)
 target_link_libraries(range-v3 INTERFACE range-v3::concepts range-v3::meta)
 
 function(rv3_add_test TESTNAME EXENAME FIRSTSOURCE)
-  add_executable(${EXENAME} ${FIRSTSOURCE} ${ARGN})
-  target_link_libraries(${EXENAME} range-v3)
-  add_test(${TESTNAME} ${EXENAME})
+  add_executable(range.v3.${EXENAME} ${FIRSTSOURCE} ${ARGN})
+  target_link_libraries(range.v3.${EXENAME} range-v3)
+  add_test(range.v3.${TESTNAME} range.v3.${EXENAME})
 endfunction(rv3_add_test)
-
-include(ranges_options)
-include(ranges_env)
-include(ranges_flags)
 
 if(RANGE_V3_DOCS)
   add_subdirectory(doc)
@@ -85,8 +88,8 @@ endif()
 # Add header files as sources to fix MSVS 2017 not finding source during debugging
 file(GLOB_RECURSE RANGE_V3_PUBLIC_HEADERS_ABSOLUTE
                   "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp")
-add_custom_target(headers SOURCES ${RANGE_V3_PUBLIC_HEADERS_ABSOLUTE})
-set_target_properties(headers PROPERTIES FOLDER "header")
+add_custom_target(range.v3.headers SOURCES ${RANGE_V3_PUBLIC_HEADERS_ABSOLUTE})
+set_target_properties(range.v3.headers PROPERTIES FOLDER "header")
 
 # Test all headers
 if(RANGE_V3_HEADER_CHECKS)
@@ -108,6 +111,11 @@ if(RANGE_V3_HEADER_CHECKS)
         list(APPEND RANGE_V3_DEPRECATED_PUBLIC_HEADERS "${header}")
       endif()
     endforeach()
+  endif()
+
+  if(NOT RANGE_V3_COROUTINE_FLAGS)
+      # Can't test this header if we can't even compile it
+      list(APPEND RANGE_V3_DEPRECATED_PUBLIC_HEADERS range/v3/experimental/utility/generator.hpp)
   endif()
 
   add_header_test(test.range.v3.headers
@@ -162,8 +170,9 @@ if(NOT RANGE_V3_NEW_VERSION_HPP STREQUAL RANGE_V3_OLD_VERSION_HPP)
   message(STATUS "Version updated to ${RANGE_V3_VERSION}. Don't forget to:")
   message(STATUS "  git push origin <feature-branch>")
   message(STATUS "and (after that is merged to master) then:")
+  message(STATUS "  conan remote add range-v3 https://api.bintray.com/conan/range-v3/range-v3")
   message(STATUS "  conan create ${CMAKE_CURRENT_SOURCE_DIR} range-v3/${RANGE_V3_VERSION}@ericniebler/stable")
-  message(STATUS "  conan upload --all range-v3/${RANGE_V3_VERSION}@ericniebler/stable")
+  message(STATUS "  conan upload --all range-v3/${RANGE_V3_VERSION}@ericniebler/stable -r=range-v3")
 endif()
 
 include(CMakePackageConfigHelpers)
@@ -180,12 +189,13 @@ write_basic_package_version_file(
 )
 set(CMAKE_SIZEOF_VOID_P ${OLD_CMAKE_SIZEOF_VOID_P})
 
-install(TARGETS range-v3-concepts range-v3-meta range-v3 EXPORT range-v3-targets DESTINATION lib)
-install(EXPORT range-v3-targets FILE range-v3-targets.cmake DESTINATION lib/cmake/range-v3)
+include(GNUInstallDirs)
+install(TARGETS range-v3-concepts range-v3-meta range-v3 EXPORT range-v3-targets DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(EXPORT range-v3-targets FILE range-v3-targets.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/range-v3)
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/range-v3-config-version.cmake
   cmake/range-v3-config.cmake
-  DESTINATION lib/cmake/range-v3)
-install(DIRECTORY include/ DESTINATION include FILES_MATCHING PATTERN "*")
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/range-v3)
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} FILES_MATCHING PATTERN "*")
 
 export(EXPORT range-v3-targets FILE range-v3-config.cmake)

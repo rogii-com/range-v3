@@ -3,7 +3,7 @@
 #=============================================================================
 if (NOT DOXYGEN_FOUND)
     message(STATUS
-    "Doxygen not found; the 'doc' and 'gh-pages.{clean,copy,update}' targets "
+    "Doxygen not found; the 'range-v3-doc' and 'range-v3-gh-pages.{clean,copy,update}' targets "
     "will be unavailable.")
     return()
 endif()
@@ -12,12 +12,12 @@ set(CMAKE_FOLDER "doc")
 
 configure_file(Doxyfile.in Doxyfile @ONLY)
 configure_file(preprocess.sh.in preprocess.sh @ONLY)
-add_custom_target(doc.check
+add_custom_target(range.v3.doc.check
     COMMAND ${DOXYGEN_EXECUTABLE} Doxyfile
     COMMENT "Running Doxygen to validate the documentation"
     VERBATIM
 )
-set_target_properties(doc.check
+set_target_properties(range.v3.doc.check
     PROPERTIES FOLDER ${CMAKE_FOLDER}
 )
 
@@ -30,42 +30,42 @@ set_target_properties(doc.check
 #     return()
 # endif()
 
-add_custom_target(doc
+add_custom_target(range-v3-doc
     COMMAND ${DOXYGEN_EXECUTABLE} Doxyfile
     COMMENT "Generating API documentation with Doxygen"
-#     DEPENDS benchmarks
+#     DEPENDS range-v3-benchmarks
     VERBATIM
 )
-set_target_properties(doc
+set_target_properties(range-v3-doc
     PROPERTIES FOLDER ${CMAKE_FOLDER}
 )
 
 if (NOT GIT_FOUND)
     message(STATUS
-    "Git was not found; the 'gh-pages.{clean,copy,update}' targets "
+    "Git was not found; the 'range-v3-gh-pages.{clean,copy,update}' targets "
     "will be unavailable.")
     return()
 endif()
 
-add_custom_target(gh-pages.clean
+add_custom_target(range-v3-gh-pages.clean
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_LIST_DIR}/clean-gh-pages.cmake
     COMMAND ${CMAKE_COMMAND} -E remove_directory search
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/gh-pages
     COMMENT "Cleaning up doc/gh-pages"
     VERBATIM
 )
-set_target_properties(gh-pages.clean
+set_target_properties(range-v3-gh-pages.clean
     PROPERTIES FOLDER ${CMAKE_FOLDER}
 )
 
-add_custom_target(gh-pages.copy
+add_custom_target(range-v3-gh-pages.copy
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/html ${CMAKE_CURRENT_LIST_DIR}/gh-pages
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/gh-pages
     COMMENT "Copying the documentation from ${CMAKE_CURRENT_BINARY_DIR}/html to doc/gh-pages"
-    DEPENDS doc gh-pages.clean
+    DEPENDS range-v3-doc range-v3-gh-pages.clean
     VERBATIM
 )
-set_target_properties(gh-pages.copy
+set_target_properties(range-v3-gh-pages.copy
     PROPERTIES FOLDER ${CMAKE_FOLDER}
 )
 
@@ -75,14 +75,14 @@ execute_process(
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-add_custom_target(gh-pages.update
+add_custom_target(range-v3-gh-pages.update
     COMMAND ${GIT_EXECUTABLE} add --all .
     COMMAND ${GIT_EXECUTABLE} commit -m "Update to ${RANGE_V3_GIT_SHORT_SHA}"
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/gh-pages
     COMMENT "Updating the gh-pages branch with freshly built documentation"
-    DEPENDS gh-pages.copy
+    DEPENDS range-v3-gh-pages.copy
     VERBATIM
 )
-set_target_properties(gh-pages.update
+set_target_properties(range-v3-gh-pages.update
     PROPERTIES FOLDER ${CMAKE_FOLDER}
 )

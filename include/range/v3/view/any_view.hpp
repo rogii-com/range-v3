@@ -34,6 +34,7 @@
 
 RANGES_DIAGNOSTIC_PUSH
 RANGES_DIAGNOSTIC_IGNORE_INCONSISTENT_OVERRIDE
+RANGES_DIAGNOSTIC_SUGGEST_OVERRIDE
 
 namespace ranges
 {
@@ -146,7 +147,7 @@ namespace ranges
         struct cloneable : Base
         {
             using Base::Base;
-            virtual ~cloneable() = default;
+            virtual ~cloneable() override = default;
             cloneable() = default;
             cloneable(cloneable const &) = delete;
             cloneable & operator=(cloneable const &) = delete;
@@ -154,10 +155,14 @@ namespace ranges
         };
 
         // clang-format off
+        /// \concept any_compatible_range_
+        /// \brief The \c any_compatible_range_ concept
         template(typename Rng, typename Ref)(
         concept (any_compatible_range_)(Rng, Ref),
             convertible_to<range_reference_t<Rng>, Ref>
         );
+        /// \concept any_compatible_range
+        /// \brief The \c any_compatible_range concept
         template<typename Rng, typename Ref>
         CPP_concept any_compatible_range =
             CPP_concept_ref(detail::any_compatible_range_, Rng, Ref);
@@ -415,7 +420,6 @@ namespace ranges
         public:
             any_cursor() = default;
             template(typename Rng)(
-                /// \pre
                 requires (!same_as<detail::decay_t<Rng>, any_cursor>) AND
                     forward_range<Rng> AND
                     any_compatible_range<Rng, Ref>)
@@ -455,7 +459,6 @@ namespace ranges
             CPP_member
             auto prev() //
                 -> CPP_ret(void)(
-                    /// \pre
                     requires (category::bidirectional == (Cat & category::bidirectional)))
             {
                 RANGES_EXPECT(ptr_);
@@ -464,7 +467,6 @@ namespace ranges
             CPP_member
             auto advance(std::ptrdiff_t n) //
                 -> CPP_ret(void)(
-                    /// \pre
                     requires (category::random_access == (Cat & category::random_access)))
             {
                 RANGES_EXPECT(ptr_);
@@ -473,7 +475,6 @@ namespace ranges
             CPP_member
             auto distance_to(any_cursor const & that) const //
                 -> CPP_ret(std::ptrdiff_t)(
-                    /// \pre
                     requires (category::random_access == (Cat & category::random_access)))
             {
                 RANGES_EXPECT(!ptr_ == !that.ptr_);
@@ -554,7 +555,6 @@ namespace ranges
 
         any_view() = default;
         template(typename Rng)(
-            /// \pre
             requires //
                 (!same_as<detail::decay_t<Rng>, any_view>) AND
                 input_range<Rng> AND
@@ -577,7 +577,6 @@ namespace ranges
         CPP_member
         auto size() //
             -> CPP_ret(std::size_t)(
-                /// \pre
                 requires (category::sized == (Cat & category::sized)))
         {
             return ptr_ ? ptr_->size() : 0;
@@ -620,7 +619,6 @@ namespace ranges
 
         any_view() = default;
         template(typename Rng)(
-            /// \pre
             requires //
                 (!same_as<detail::decay_t<Rng>, any_view>) AND
                 input_range<Rng> AND
@@ -632,7 +630,6 @@ namespace ranges
         CPP_member
         auto size() //
             -> CPP_ret(std::size_t)(
-                /// \pre
                 requires (category::sized == (Cat & category::sized)))
         {
             return ptr_ ? ptr_->size() : 0;
@@ -660,7 +657,6 @@ namespace ranges
 
 #if RANGES_CXX_DEDUCTION_GUIDES >= RANGES_CXX_DEDUCTION_GUIDES_17
     template(typename Rng)(
-        /// \pre
         requires view_<Rng>)
         any_view(Rng &&)
             ->any_view<range_reference_t<Rng>, get_categories<Rng>()>;

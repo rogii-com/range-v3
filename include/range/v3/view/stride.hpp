@@ -170,7 +170,6 @@ namespace ranges
               : rng_(rng)
             {}
             template(bool Other)(
-                /// \pre
                 requires Const AND CPP_NOT(Other)) //
             adaptor(adaptor<Other> that)
               : rng_(that.rng_)
@@ -188,7 +187,6 @@ namespace ranges
             CPP_member
             constexpr auto prev(iterator_t<CRng> & it) //
                 -> CPP_ret(void)(
-                    /// \pre
                     requires bidirectional_range<CRng>)
             {
                 RANGES_EXPECT(it != ranges::begin(rng_->base()));
@@ -201,7 +199,6 @@ namespace ranges
                 ranges::advance(it, delta);
             }
             template(typename Other)(
-                /// \pre
                 requires sized_sentinel_for<Other, iterator_t<CRng>>)
             constexpr range_difference_t<Rng> distance_to(iterator_t<CRng> const & here,
                                                           Other const & there) const
@@ -216,7 +213,6 @@ namespace ranges
             CPP_member
             constexpr auto advance(iterator_t<CRng> & it, range_difference_t<Rng> n) //
                 -> CPP_ret(void)(
-                    /// \pre
                     requires random_access_range<CRng>)
             {
                 if(0 == n)
@@ -257,7 +253,6 @@ namespace ranges
         CPP_member
         constexpr auto begin_adaptor() const noexcept
             -> CPP_ret(adaptor<true>)(
-                /// \pre
                 requires(const_iterable()))
         {
             return adaptor<true>{this};
@@ -271,7 +266,6 @@ namespace ranges
         CPP_member
         constexpr auto end_adaptor() const noexcept //
             -> CPP_ret(meta::if_c<can_bound<true>(), adaptor<true>, adaptor_base>)(
-                /// \pre
                 requires (const_iterable()))
         {
             return {this};
@@ -282,9 +276,8 @@ namespace ranges
         constexpr stride_view(Rng rng, range_difference_t<Rng> const stride)
           : detail::stride_view_base<Rng>{std::move(rng), stride}
         {}
-        CPP_member
+        CPP_auto_member
         constexpr auto CPP_fun(size)()(
-            /// \pre
             requires sized_range<Rng>)
         {
             using size_type = range_size_t<Rng>;
@@ -292,7 +285,7 @@ namespace ranges
             return (n + static_cast<size_type>(this->stride_) - 1) /
                    static_cast<size_type>(this->stride_);
         }
-        CPP_member
+        CPP_auto_member
         constexpr auto CPP_fun(size)()(const //
             requires sized_range<Rng const>)
         {
@@ -314,7 +307,6 @@ namespace ranges
         struct stride_base_fn
         {
             template(typename Rng)(
-                /// \pre
                 requires viewable_range<Rng> AND input_range<Rng>)
             constexpr stride_view<all_t<Rng>> //
             operator()(Rng && rng, range_difference_t<Rng> step) const
@@ -328,7 +320,6 @@ namespace ranges
             using stride_base_fn::operator();
 
             template(typename Difference)(
-                /// \pre
                 requires detail::integer_like_<Difference>)
             constexpr auto operator()(Difference step) const
             {

@@ -66,7 +66,6 @@ namespace ranges
             return next(ranges::begin(rng_), 1, ranges::end(rng_));
         }
         template(bool Const = true)(
-            /// \pre
             requires Const AND range<meta::const_if_c<Const, Rng>>)
         iterator_t<meta::const_if_c<Const, Rng>> begin() const
         {
@@ -77,16 +76,14 @@ namespace ranges
             return ranges::end(rng_);
         }
         template(bool Const = true)(
-            /// \pre
             requires Const AND range<meta::const_if_c<Const, Rng>>)
         sentinel_t<meta::const_if_c<Const, Rng>> end() const
         {
             return ranges::end(rng_);
         }
         // Strange cast to bool in the requires clause is to work around gcc bug.
-        CPP_member
+        CPP_auto_member
         constexpr auto CPP_fun(size)()(
-            /// \pre
             requires(bool(sized_range<Rng>)))
         {
             using size_type = range_size_t<Rng>;
@@ -94,7 +91,7 @@ namespace ranges
                        ? detail::prev_or_zero_((size_type)range_cardinality<Rng>::value)
                        : detail::prev_or_zero_(ranges::size(rng_));
         }
-        CPP_member
+        CPP_auto_member
         constexpr auto CPP_fun(size)()(const //
             requires(bool(sized_range<Rng const>)))
         {
@@ -115,7 +112,6 @@ namespace ranges
 
 #if RANGES_CXX_DEDUCTION_GUIDES >= RANGES_CXX_DEDUCTION_GUIDES_17
     template(typename Rng)(
-        /// \pre
         requires viewable_range<Rng>)
         tail_view(Rng &&)
             ->tail_view<views::all_t<Rng>>;
@@ -126,7 +122,6 @@ namespace ranges
         struct tail_fn
         {
             template(typename Rng)(
-                /// \pre
                 requires viewable_range<Rng> AND input_range<Rng>)
             meta::if_c<range_cardinality<Rng>::value == 0,
                        all_t<Rng>,

@@ -466,7 +466,7 @@ namespace meta
 #else
     /// Generate \c index_sequence containing integer constants [0,1,2,...,N-1].
     /// \par Complexity
-    /// \f$ O(log(N)) \f$.
+    /// `O(log(N))`.
     /// \ingroup integral
     template <std::size_t N>
     using make_index_sequence =
@@ -474,7 +474,7 @@ namespace meta
 
     /// Generate \c integer_sequence containing integer constants [0,1,2,...,N-1].
     /// \par Complexity
-    /// \f$ O(log(N)) \f$.
+    /// `O(log(N))`.
     /// \ingroup integral
     template <typename T, T N>
     using make_integer_sequence =
@@ -483,9 +483,9 @@ namespace meta
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // integer_range
-    /// Makes the integer sequence <tt>[From, To)</tt>.
+    /// Makes the integer sequence `[From, To)`.
     /// \par Complexity
-    /// \f$ O(log(To - From)) \f$.
+    /// `O(log(To - From))`.
     /// \ingroup integral
     template <typename T, T From, T To>
     using integer_range =
@@ -818,14 +818,14 @@ namespace meta
 
     /// An alias that computes the size of the type \p T.
     /// \par Complexity
-    /// \f$ O(1) \f$.
+    /// `O(1)`.
     /// \ingroup trait
     template <typename T>
     using sizeof_ = meta::size_t<sizeof(T)>;
 
     /// An alias that computes the alignment required for any instance of the type \p T.
     /// \par Complexity
-    /// \f$ O(1) \f$.
+    /// `O(1)`.
     /// \ingroup trait
     template <typename T>
     using alignof_ = meta::size_t<alignof(T)>;
@@ -1158,17 +1158,20 @@ namespace meta
         {
         };
 
-        template <integral If>
+        template <typename If>
+            requires integral<If>
         struct _if_<If> : std::enable_if<_v<If>>
         {
         };
 
-        template <integral If, typename Then>
+        template <typename If, typename Then>
+            requires integral<If>
         struct _if_<If, Then> : std::enable_if<_v<If>, Then>
         {
         };
 
-        template <integral If, typename Then, typename Else>
+        template <typename If, typename Then, typename Else>
+            requires integral<If>
         struct _if_<If, Then, Else> : std::conditional<_v<If>, Then, Else>
         {
         };
@@ -1274,13 +1277,15 @@ namespace meta
         {
         };
 
-        template <integral B, typename... Bs>
-        requires (bool(B::type::value)) struct _and_<B, Bs...> : _and_<Bs...>
+        template <typename B, typename... Bs>
+            requires integral<B> && (bool(B::type::value))
+        struct _and_<B, Bs...> : _and_<Bs...>
         {
         };
 
-        template <integral B, typename... Bs>
-        requires (!bool(B::type::value)) struct _and_<B, Bs...> : std::false_type
+        template <typename B, typename... Bs>
+            requires integral<B> && (!bool(B::type::value))
+        struct _and_<B, Bs...> : std::false_type
         {
         };
 
@@ -1294,13 +1299,15 @@ namespace meta
         {
         };
 
-        template <integral B, typename... Bs>
-        requires (bool(B::type::value)) struct _or_<B, Bs...> : std::true_type
+        template <typename B, typename... Bs>
+            requires integral<B> && (bool(B::type::value))
+        struct _or_<B, Bs...> : std::true_type
         {
         };
 
-        template <integral B, typename... Bs>
-        requires (!bool(B::type::value)) struct _or_<B, Bs...> : _or_<Bs...>
+        template <typename B, typename... Bs>
+            requires integral<B> && (!bool(B::type::value))
+        struct _or_<B, Bs...> : _or_<Bs...>
         {
         };
 #else
@@ -1570,10 +1577,10 @@ namespace meta
     /// \endcond
 
     /// Return a new \c meta::list constructed by doing a left fold of the list \p L using
-    /// binary invocable \p Fn and initial state \p State. That is, the \c State_N for
-    /// the list element \c A_N is computed by `Fn(State_N-1, A_N) -> State_N`.
+    /// binary invocable \p Fn and initial state \p State. That is, the \c State(N) for
+    /// the list element \c A(N) is computed by `Fn(State(N-1), A(N)) -> State(N)`.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) L, typename State, META_TYPE_CONSTRAINT(invocable) Fn>
 #ifdef META_CONCEPT
@@ -1584,7 +1591,7 @@ namespace meta
 
     /// An alias for `meta::fold`.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) L, typename State, META_TYPE_CONSTRAINT(invocable) Fn>
     using accumulate = fold<L, State, Fn>;
@@ -1645,10 +1652,10 @@ namespace meta
     /// \endcond
 
     /// Return a new \c meta::list constructed by doing a right fold of the list \p L using
-    /// binary invocable \p Fn and initial state \p State. That is, the \c State_N for the list
-    /// element \c A_N is computed by `Fn(A_N, State_N+1) -> State_N`.
+    /// binary invocable \p Fn and initial state \p State. That is, the \c State(N) for the list
+    /// element \c A(N) is computed by `Fn(A(N), State(N+1)) -> State(N)`.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) L, typename State, META_TYPE_CONSTRAINT(invocable) Fn>
     using reverse_fold = _t<detail::reverse_fold_<L, State, Fn>>;
@@ -1752,7 +1759,7 @@ namespace meta
     /// Concatenates several lists into a single list.
     /// \pre The parameters must all be instantiations of \c meta::list.
     /// \par Complexity
-    /// \f$ O(L) \f$ where \f$ L \f$ is the number of lists in the list of lists.
+    /// `O(L)` where `L` is the number of lists in the list of lists.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like)... Ls>
     using concat_ = _t<detail::concat_<Ls...>>;
@@ -1772,7 +1779,7 @@ namespace meta
     /// \pre The parameter must be an instantiation of \c meta::list\<T...\>
     /// where each \c T is itself an instantiation of \c meta::list.
     /// \par Complexity
-    /// \f$ O(L) \f$ where \f$ L \f$ is the number of lists in the list of
+    /// `O(L)` where `L` is the number of lists in the list of
     /// lists.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) ListOfLists>
@@ -1797,15 +1804,15 @@ namespace meta
         {
         };
 
-        template <typename... Ts, invocable Fn>
-        requires and_v<valid<invoke, Fn, Ts>...>
+        template <typename... Ts, typename Fn>
+            requires invocable<Fn> && and_v<valid<invoke, Fn, Ts>...>
         struct transform_<list<Ts...>, Fn>
         {
             using type = list<invoke<Fn, Ts>...>;
         };
 
-        template <typename... Ts, typename... Us, invocable Fn>
-        requires and_v<valid<invoke, Fn, Ts, Us>...>
+        template <typename... Ts, typename... Us, typename Fn>
+            requires invocable<Fn> && and_v<valid<invoke, Fn, Ts, Us>...>
         struct transform_<list<Ts...>, list<Us...>, Fn>
         {
             using type = list<invoke<Fn, Ts, Us>...>;
@@ -1838,7 +1845,7 @@ namespace meta
     /// invocable, in which case it returns a new list constructed with the
     /// results of calling \c Fn with each element in the lists, pairwise.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup transformation
 #ifdef META_CONCEPT
     template <typename... Args>
@@ -1879,14 +1886,14 @@ namespace meta
 
     /// Generate `list<T,T,T...T>` of size \p N arguments.
     /// \par Complexity
-    /// \f$ O(log N) \f$.
+    /// `O(log N)`.
     /// \ingroup list
     template <std::size_t N, typename T = void>
     using repeat_n_c = _t<detail::repeat_n_c_<T, make_index_sequence<N>>>;
 
     /// Generate `list<T,T,T...T>` of size \p N arguments.
     /// \par Complexity
-    /// \f$ O(log N) \f$.
+    /// `O(log N)`.
     /// \ingroup list
     template <META_TYPE_CONSTRAINT(integral) N, typename T = void>
     using repeat_n = repeat_n_c<N::type::value, T>;
@@ -1949,14 +1956,14 @@ namespace meta
 
     /// Return the \p N th element in the \c meta::list \p L.
     /// \par Complexity
-    /// Amortized \f$ O(1) \f$.
+    /// Amortized `O(1)`.
     /// \ingroup list
     template <META_TYPE_CONSTRAINT(list_like) L, std::size_t N>
     using at_c = _t<detail::at_<L, N>>;
 
     /// Return the \p N th element in the \c meta::list \p L.
     /// \par Complexity
-    /// Amortized \f$ O(1) \f$.
+    /// Amortized `O(1)`.
     /// \ingroup list
     template <META_TYPE_CONSTRAINT(list_like) L, META_TYPE_CONSTRAINT(integral) N>
     using at = at_c<L, N::type::value>;
@@ -2017,14 +2024,14 @@ namespace meta
 
     /// Return a new \c meta::list by removing the first \p N elements from \p L.
     /// \par Complexity
-    /// \f$ O(1) \f$.
+    /// `O(1)`.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) L, std::size_t N>
     using drop_c = _t<detail::drop_<L, N>>;
 
     /// Return a new \c meta::list by removing the first \p N elements from \p L.
     /// \par Complexity
-    /// \f$ O(1) \f$.
+    /// `O(1)`.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) L, META_TYPE_CONSTRAINT(integral) N>
     using drop = drop_c<L, N::type::value>;
@@ -2057,7 +2064,7 @@ namespace meta
 
     /// Return the first element in \c meta::list \p L.
     /// \par Complexity
-    /// \f$ O(1) \f$.
+    /// `O(1)`.
     /// \ingroup list
     template <META_TYPE_CONSTRAINT(list_like) L>
     using front = _t<detail::front_<L>>;
@@ -2090,7 +2097,7 @@ namespace meta
 
     /// Return the last element in \c meta::list \p L.
     /// \par Complexity
-    /// Amortized \f$ O(1) \f$.
+    /// Amortized `O(1)`.
     /// \ingroup list
     template <META_TYPE_CONSTRAINT(list_like) L>
     using back = _t<detail::back_<L>>;
@@ -2107,7 +2114,7 @@ namespace meta
     // push_front
     /// Return a new \c meta::list by adding the element \c T to the front of \p L.
     /// \par Complexity
-    /// \f$ O(1) \f$.
+    /// `O(1)`.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) L, typename... Ts>
     using push_front = apply<bind_front<quote<list>, Ts...>, L>;
@@ -2141,7 +2148,7 @@ namespace meta
     /// Return a new \c meta::list by removing the first element from the
     /// front of \p L.
     /// \par Complexity
-    /// \f$ O(1) \f$.
+    /// `O(1)`.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) L>
     using pop_front = _t<detail::pop_front_<L>>;
@@ -2158,7 +2165,7 @@ namespace meta
     // push_back
     /// Return a new \c meta::list by adding the element \c T to the back of \p L.
     /// \par Complexity
-    /// \f$ O(1) \f$.
+    /// `O(1)`.
     /// \note \c pop_back not provided because it cannot be made to meet the
     /// complexity guarantees one would expect.
     /// \ingroup transformation
@@ -2218,7 +2225,7 @@ namespace meta
     /// An Boolean integral constant wrapper around \c true if \p L is an
     /// empty type list; \c false, otherwise.
     /// \par Complexity
-    /// \f$ O(1) \f$.
+    /// `O(1)`.
     /// \ingroup list
     template <META_TYPE_CONSTRAINT(list_like) L>
     using empty = bool_<0 == size<L>::type::value>;
@@ -2301,7 +2308,7 @@ namespace meta
     /// Finds the index of the first occurrence of the type \p T within the list \p L.
     /// Returns `#meta::npos` if the type \p T was not found.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup query
     /// \sa `meta::npos`
     template <META_TYPE_CONSTRAINT(list_like) L, typename T>
@@ -2356,7 +2363,7 @@ namespace meta
     /// Finds the index of the last occurrence of the type \p T within the
     /// list \p L. Returns `#meta::npos` if the type \p T was not found.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup query
     /// \sa `#meta::npos`
     template <META_TYPE_CONSTRAINT(list_like) L, typename T>
@@ -2375,7 +2382,7 @@ namespace meta
     /// Return the tail of the list \p L starting at the first occurrence of
     /// \p T, if any such element exists; the empty list, otherwise.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup query
     template <META_TYPE_CONSTRAINT(list_like) L, typename T>
     using find = drop<L, min<find_index<L, T>, size<L>>>;
@@ -2420,7 +2427,7 @@ namespace meta
     /// Return the tail of the list \p L starting at the last occurrence of \p T, if any such
     /// element exists; the empty list, otherwise.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup query
     template <META_TYPE_CONSTRAINT(list_like) L, typename T>
     using reverse_find = drop<L, min<reverse_find_index<L, T>, size<L>>>;
@@ -2493,7 +2500,7 @@ namespace meta
     /// such that `invoke<Fn, A>::%value` is \c true, if any such element
     /// exists; the empty list, otherwise.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup query
     template <META_TYPE_CONSTRAINT(list_like) L, META_TYPE_CONSTRAINT(invocable) Fn>
     using find_if = _t<detail::find_if_<L, Fn>>;
@@ -2572,7 +2579,7 @@ namespace meta
     /// such that `invoke<Fn, A>::%value` is \c true, if any such element
     /// exists; the empty list, otherwise.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup query
     template <META_TYPE_CONSTRAINT(list_like) L, META_TYPE_CONSTRAINT(invocable) Fn>
     using reverse_find_if = _t<detail::reverse_find_if_<L, Fn>>;
@@ -2606,7 +2613,7 @@ namespace meta
     /// Return a new \c meta::list where all instances of type \p T have
     /// been replaced with \p U.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) L, typename T, typename U>
     using replace = _t<detail::replace_<L, T, U>>;
@@ -2656,7 +2663,7 @@ namespace meta
     /// for which `invoke<C,A>::%value` is \c true have been replaced with
     /// \p U.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) L, typename C, typename U>
     using replace_if = _t<detail::replace_if_<L, C, U>>;
@@ -2712,7 +2719,7 @@ namespace meta
 
     /// Count the number of times a type \p T appears in the list \p L.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup query
     template <META_TYPE_CONSTRAINT(list_like) L, typename T>
     using count = _t<detail::count_<L, T>>;
@@ -2774,7 +2781,7 @@ namespace meta
     /// Count the number of times the predicate \p Fn evaluates to true for all the elements in
     /// the list \p L.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup query
     template <META_TYPE_CONSTRAINT(list_like) L, META_TYPE_CONSTRAINT(invocable) Fn>
     using count_if = _t<detail::count_if_<L, Fn>>;
@@ -2805,7 +2812,7 @@ namespace meta
     /// Callable \p Pred such that `invoke<Pred,A>::%value` is \c true are present.
     /// That is, those elements that don't satisfy the \p Pred are "removed".
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup transformation
     template <typename L, typename Pred>
     using filter = join<transform<L, detail::filter_<Pred>>>;
@@ -2877,8 +2884,8 @@ namespace meta
     // transpose
     /// Given a list of lists of types \p ListOfLists, transpose the elements from the lists.
     /// \par Complexity
-    /// \f$ O(N \times M) \f$, where \f$ N \f$ is the size of the outer list, and
-    /// \f$ M \f$ is the size of the inner lists.
+    /// `O(N * M)`, where `N` is the size of the outer list, and
+    /// `M` is the size of the inner lists.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) ListOfLists>
     using transpose = fold<ListOfLists, repeat_n<size<front<ListOfLists>>, list<>>,
@@ -2897,8 +2904,8 @@ namespace meta
     /// Given a list of lists of types \p ListOfLists and an invocable \p Fn, construct a new
     /// list by calling \p Fn with the elements from the lists pairwise.
     /// \par Complexity
-    /// \f$ O(N \times M) \f$, where \f$ N \f$ is the size of the outer list, and
-    /// \f$ M \f$ is the size of the inner lists.
+    /// `O(N * M)`, where `N` is the size of the outer list, and
+    /// `M` is the size of the inner lists.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(invocable) Fn, META_TYPE_CONSTRAINT(list_like) ListOfLists>
     using zip_with = transform<transpose<ListOfLists>, uncurry<Fn>>;
@@ -2916,7 +2923,7 @@ namespace meta
     /// Given a list of lists of types \p ListOfLists, construct a new list by grouping the
     /// elements from the lists pairwise into `meta::list`s.
     /// \par Complexity
-    /// \f$ O(N \times M) \f$, where \f$ N \f$ is the size of the outer list, and \f$ M \f$
+    /// `O(N * M)`, where `N` is the size of the outer list, and `M`
     /// is the size of the inner lists.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) ListOfLists>
@@ -2983,7 +2990,7 @@ namespace meta
 
     /// Return a new \c meta::list by reversing the elements in the list \p L.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) L>
     using reverse = _t<detail::reverse_<L>>;
@@ -3014,7 +3021,7 @@ namespace meta
     /// A Boolean integral constant wrapper around \c true if `invoke<Fn, A>::%value` is \c true
     /// for all elements \c A in \c meta::list \p L; \c false, otherwise.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup query
     template <META_TYPE_CONSTRAINT(list_like) L, META_TYPE_CONSTRAINT(invocable) Fn>
     using all_of = empty<find_if<L, not_fn<Fn>>>;
@@ -3032,7 +3039,7 @@ namespace meta
     /// A Boolean integral constant wrapper around \c true if `invoke<Fn, A>::%value` is
     /// \c true for any element \c A in \c meta::list \p L; \c false, otherwise.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup query
     template <META_TYPE_CONSTRAINT(list_like) L, META_TYPE_CONSTRAINT(invocable) Fn>
     using any_of = not_<empty<find_if<L, Fn>>>;
@@ -3050,7 +3057,7 @@ namespace meta
     /// A Boolean integral constant wrapper around \c true if `invoke<Fn, A>::%value` is
     /// \c false for all elements \c A in \c meta::list \p L; \c false, otherwise.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup query
     template <META_TYPE_CONSTRAINT(list_like) L, META_TYPE_CONSTRAINT(invocable) Fn>
     using none_of = empty<find_if<L, Fn>>;
@@ -3068,7 +3075,7 @@ namespace meta
     /// A Boolean integral constant wrapper around \c true if there is at least one occurrence
     /// of \p T in \p L.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup query
     template <META_TYPE_CONSTRAINT(list_like) L, typename T>
     using in = not_<empty<find<L, T>>>;
@@ -3144,7 +3151,7 @@ namespace meta
 
     /// Return a new \c meta::list where all duplicate elements have been removed.
     /// \par Complexity
-    /// \f$ O(N^2) \f$.
+    /// `O(N^2)`.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) L>
     using unique = fold<L, list<>, quote_trait<detail::insert_back_>>;
@@ -3182,7 +3189,7 @@ namespace meta
                         void_<bool_<invoke<Fn, A>::type::value>>>
 #endif
             {
-                using type = if_<invoke<Fn, A>, pair<list<Yes..., A>, list<No...>>,
+                using type = if_<meta::invoke<Fn, A>, pair<list<Yes..., A>, list<No...>>,
                                     pair<list<Yes...>, list<No..., A>>>;
             };
 
@@ -3196,7 +3203,7 @@ namespace meta
     /// invocable \p Fn such that `invoke<Fn,A>::%value` is \c true are present in the
     /// first list and the rest are in the second.
     /// \par Complexity
-    /// \f$ O(N) \f$.
+    /// `O(N)`.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) L, META_TYPE_CONSTRAINT(invocable) Fn>
     using partition = fold<L, pair<list<>, list<>>, detail::partition_<Fn>>;
@@ -3217,7 +3224,8 @@ namespace meta
         template <META_TYPE_CONSTRAINT(invocable) Fn, typename A, typename B, typename... Ts>
         using part_ = partition<list<B, Ts...>, bind_back<Fn, A>>;
 #ifdef META_CONCEPT
-        template <list_like L, invocable Fn>
+        template <typename L, typename Fn>
+            requires list_like<L> && invocable<Fn>
 #else
         template <typename, typename, typename = void>
 #endif
@@ -3238,8 +3246,8 @@ namespace meta
 
         template <typename A, typename B, typename... Ts, typename Fn>
 #ifdef META_CONCEPT
-        requires trait<sort_<first<part_<Fn, A, B, Ts...>>, Fn>> &&
-            trait<sort_<second<part_<Fn, A, B, Ts...>>, Fn>>
+            requires trait<sort_<first<part_<Fn, A, B, Ts...>>, Fn>> &&
+                trait<sort_<second<part_<Fn, A, B, Ts...>>, Fn>>
         struct sort_<list<A, B, Ts...>, Fn>
 #else
         struct sort_<
@@ -3256,8 +3264,8 @@ namespace meta
     // clang-format off
     /// Return a new \c meta::list that is sorted according to invocable predicate \p Fn.
     /// \par Complexity
-    /// Expected: \f$ O(N log N) \f$
-    /// Worst case: \f$ O(N^2) \f$.
+    /// Expected: `O(N log N)`
+    /// Worst case: `O(N^2)`.
     /// \code
     /// using L0 = list<char[5], char[3], char[2], char[6], char[1], char[5], char[10]>;
     /// using L1 = meta::sort<L0, lambda<_a, _b, lazy::less<lazy::sizeof_<_a>, lazy::sizeof_<_b>>>>;
@@ -3704,8 +3712,8 @@ namespace meta
     /// Given a list of lists \p ListOfLists, return a new list of lists that is the Cartesian
     /// Product. Like the `sequence` function from the Haskell Prelude.
     /// \par Complexity
-    /// \f$ O(N \times M) \f$, where \f$ N \f$ is the size of the outer list, and
-    /// \f$ M \f$ is the size of the inner lists.
+    /// `O(N * M)`, where `N` is the size of the outer list, and
+    /// `M` is the size of the inner lists.
     /// \ingroup transformation
     template <META_TYPE_CONSTRAINT(list_like) ListOfLists>
     using cartesian_product =
